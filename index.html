@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McDonald's Philippines Mix & Match Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffcc00 0%, #ff6b35 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            color: #d63031;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d63031;
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00b894;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #ffffff, #f1f2f6);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .card.flipped {
+            background: linear-gradient(145deg, #ffeaa7, #fab1a0);
+            border-color: #fdcb6e;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            background: linear-gradient(145deg, #00b894, #55a3ff);
+            border-color: #00b894;
+            animation: matchPulse 0.6s ease;
+        }
+
+        .card-content {
+            font-size: 3rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card.flipped .card-content,
+        .card.matched .card-content {
+            opacity: 1;
+        }
+
+        .card-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, #d63031, #ff6b35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+
+        .card.flipped .card-back,
+        .card.matched .card-back {
+            opacity: 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #d63031, #ff6b35);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #ffffff, #ddd);
+            color: #2d3436;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            margin: 10% auto;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #d63031;
+        }
+
+        .modal p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #636e72;
+        }
+
+        .cta-btn {
+            background: linear-gradient(145deg, #00b894, #55a3ff);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            margin: 10px;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @keyframes matchPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+
+        .footer p {
+            margin: 0;
+            color: #636e72;
+            font-size: 1rem;
+        }
+
+        .footer a {
+            color: #d63031;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #ff6b35;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .card-content {
+                font-size: 2rem;
+            }
+            
+            .card-back {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="logo">Mix & Match Game - McDonald's Philippines</h1>
+        <p>🍟🍔 Find all the pairs! 🥤🍗</p>
+    </div>
+
+
+
+    <div class="game-info">
+        <div class="timer">⏱️ Time: <span id="timeLeft">60</span>s</div>
+        <div class="score">🎯 Pairs: <span id="pairsFound">0</span>/<span id="totalPairs">12</span></div>
+    </div>
+
+    <div class="game-board" id="gameBoard"></div>
+
+    <div class="controls">
+        <button class="btn btn-primary" onclick="startGame()">🎮 New Game</button>
+        <button class="btn btn-secondary" onclick="resetGame()">🔄 Reset</button>
+    </div>
+
+    <div class="footer">
+        <p>Powered by <a href="https://mcdomenuprices.com.ph/" target="_blank" rel="dofollow">Mcdo Menu Prices, Philippines</a></p>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Congratulations!</h2>
+            <p>You found all pairs! Your McDonald's memory skills are amazing!</p>
+            <p id="successTime"></p>
+            <button class="cta-btn" onclick="orderNow()">🍟 Order McDonald's Now!</button>
+            <button class="btn btn-secondary" onclick="closeModal(); startGame()">🎮 Play Again</button>
+        </div>
+    </div>
+
+    <!-- Failure Modal -->
+    <div id="failureModal" class="modal">
+        <div class="modal-content">
+            <h2>⏰ Time's Up!</h2>
+            <p>Don't worry! Even McDonald's takes time to perfect their recipes.</p>
+            <p id="failureScore"></p>
+            <button class="cta-btn" onclick="orderNow()">🍔 Order McDonald's Now!</button>
+            <button class="btn btn-secondary" onclick="closeModal(); startGame()">🎮 Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // McDonald's Philippines menu items with emojis
+        const menuItems = [
+            '🍔', '🍟', '🍗', '🥤', '🍎', '🥛', '🍰', '🥪',
+            '🌯', '🥗', '🧊', '☕', '🥞', '🧈', '🥓', '🍳'
+        ];
+
+        let gameState = {
+            cards: [],
+            flippedCards: [],
+            matchedPairs: 0,
+            totalPairs: 0,
+            timeLeft: 90,
+            gameTimer: null,
+            gameStarted: false,
+            difficulty: 'medium'
+        };
+
+        const difficulties = {
+            hard: { rows: 4, cols: 6, time: 60 }
+        };
+
+        function initializeGame() {
+            const difficulty = 'hard';
+            gameState.difficulty = difficulty;
+            
+            const config = difficulties[difficulty];
+            const totalCards = config.rows * config.cols;
+            gameState.totalPairs = totalCards / 2;
+            gameState.timeLeft = config.time;
+            
+            // Update UI
+            document.getElementById('timeLeft').textContent = gameState.timeLeft;
+            document.getElementById('totalPairs').textContent = gameState.totalPairs;
+            document.getElementById('pairsFound').textContent = 0;
+            
+            // Create card pairs
+            const selectedItems = menuItems.slice(0, gameState.totalPairs);
+            const cardItems = [...selectedItems, ...selectedItems];
+            
+            // Shuffle cards
+            for (let i = cardItems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardItems[i], cardItems[j]] = [cardItems[j], cardItems[i]];
+            }
+            
+            gameState.cards = cardItems.map((item, index) => ({
+                id: index,
+                emoji: item,
+                isFlipped: false,
+                isMatched: false
+            }));
+            
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('gameBoard');
+            const config = difficulties[gameState.difficulty];
+            
+            board.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+            board.innerHTML = '';
+            
+            gameState.cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.cardId = card.id;
+                
+                if (card.isFlipped || card.isMatched) {
+                    cardElement.classList.add(card.isMatched ? 'matched' : 'flipped');
+                }
+                
+                cardElement.innerHTML = `
+                    <div class="card-content">${card.emoji}</div>
+                    <div class="card-back">M</div>
+                `;
+                
+                cardElement.addEventListener('click', () => flipCard(card.id));
+                board.appendChild(cardElement);
+            });
+        }
+
+        function flipCard(cardId) {
+            if (!gameState.gameStarted) {
+                startTimer();
+                gameState.gameStarted = true;
+            }
+            
+            const card = gameState.cards[cardId];
+            
+            if (card.isFlipped || card.isMatched || gameState.flippedCards.length >= 2) {
+                return;
+            }
+            
+            card.isFlipped = true;
+            gameState.flippedCards.push(cardId);
+            
+            renderBoard();
+            
+            if (gameState.flippedCards.length === 2) {
+                setTimeout(checkMatch, 800);
+            }
+        }
+
+        function checkMatch() {
+            const [firstId, secondId] = gameState.flippedCards;
+            const firstCard = gameState.cards[firstId];
+            const secondCard = gameState.cards[secondId];
+            
+            if (firstCard.emoji === secondCard.emoji) {
+                // Match found
+                firstCard.isMatched = true;
+                secondCard.isMatched = true;
+                gameState.matchedPairs++;
+                
+                document.getElementById('pairsFound').textContent = gameState.matchedPairs;
+                
+                if (gameState.matchedPairs === gameState.totalPairs) {
+                    // Game won
+                    clearInterval(gameState.gameTimer);
+                    setTimeout(() => showSuccessModal(), 500);
+                }
+            } else {
+                // No match
+                firstCard.isFlipped = false;
+                secondCard.isFlipped = false;
+            }
+            
+            gameState.flippedCards = [];
+            renderBoard();
+        }
+
+        function startTimer() {
+            gameState.gameTimer = setInterval(() => {
+                gameState.timeLeft--;
+                document.getElementById('timeLeft').textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.gameTimer);
+                    showFailureModal();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            resetGame();
+            initializeGame();
+        }
+
+        function resetGame() {
+            clearInterval(gameState.gameTimer);
+            gameState = {
+                cards: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                totalPairs: 0,
+                timeLeft: 60,
+                gameTimer: null,
+                gameStarted: false,
+                difficulty: 'hard'
+            };
+        }
+
+        function showSuccessModal() {
+            const timeTaken = 60 - gameState.timeLeft;
+            document.getElementById('successTime').textContent = `Time taken: ${timeTaken} seconds`;
+            document.getElementById('successModal').style.display = 'block';
+        }
+
+        function showFailureModal() {
+            document.getElementById('failureScore').textContent = `You found ${gameState.matchedPairs} out of ${gameState.totalPairs} pairs. Better luck next time!`;
+            document.getElementById('failureModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').style.display = 'none';
+            document.getElementById('failureModal').style.display = 'none';
+        }
+
+        function orderNow() {
+            // Redirect to McDonald's Happy Meal menu page
+            window.open('https://mcdomenuprices.com.ph/happy-meal-menu/', '_blank');
+            closeModal();
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (event) => {
+            const successModal = document.getElementById('successModal');
+            const failureModal = document.getElementById('failureModal');
+            
+            if (event.target === successModal || event.target === failureModal) {
+                closeModal();
+            }
+        });
+
+        // Initialize the game on load
+        window.addEventListener('load', initializeGame);
+    </script>
+</body>
+</html>
